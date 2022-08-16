@@ -1,0 +1,7 @@
+name: AsyncMultiThreadedBackup
+version: '${version}'
+main: net.labindustries.asyncmultithreadedbackup.AsyncMultiThreadedBackup
+api-version: 1.19
+authors: [ Lukas02 ]
+description: Async Multithreaded Scheduler
+website: labindustries.net
