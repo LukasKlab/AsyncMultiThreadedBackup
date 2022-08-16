@@ -6,60 +6,57 @@ import org.bukkit.Bukkit;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
 public class FileTasks {
-
-    public static final ConcurrentHashMap<Path, File> pathFileCollection = new ConcurrentHashMap<Path, File>();
-    public static final List<File> files = new ArrayList<>();
-    private static final HashMap<Path, Path> ignoredPaths = new HashMap<>();
-
-
     AsyncMultiThreadedBackup asyncMultiThreadedBackup;
 
     public FileTasks(AsyncMultiThreadedBackup asyncMultiThreadedBackup) {
         this.asyncMultiThreadedBackup = asyncMultiThreadedBackup;
     }
 
-
     // Look into ScatterZipOutputStream
 
-
-    public static void pathTask(Path path) {
+    public static void pathTask(Path path, String prefix, String backupDirectoryName) throws IOException {
         File[] rootFiles = path.toFile().listFiles(); // Gets correct files..
+        Path pathOriginal = Path.of(AsyncMultiThreadedBackup.getAsyncMultiThreadedBackup().getServer().getWorldContainer().getCanonicalPath());
+        File backupDirectory = new File(pathOriginal + "\\" + backupDirectoryName + "\\" + prefix);
+
+        if (!backupDirectory.isDirectory()) {
+            Files.createDirectory(backupDirectory.toPath());
+        }
+
+        Path backupPath = Path.of(backupDirectory.getPath());
+
+        //Path backupPath = Path.of(pathOriginal + "\\backups\\" + "backup1");
 
         if (rootFiles == null) return;
         // Loop through the files
         for (File file : rootFiles) {
             Bukkit.getScheduler().runTaskAsynchronously(AsyncMultiThreadedBackup.getAsyncMultiThreadedBackup(), () -> {
-                Path pathOriginal = Path.of(AsyncMultiThreadedBackup.getAsyncMultiThreadedBackup().getServer().getWorldContainer().getAbsolutePath());
-                Path backupPath = Path.of(pathOriginal + "\\backups\\" + "backup1");
                 try {
                     if (file.isDirectory()) {
-                        if(file.getName().equals("backups")) return;
+                        if (file.getName().equals("backups")) return;
                         Path subDirectory = Path.of(file.getCanonicalPath());
                         Path finalPath = Path.of(backupPath.toString() + "\\" + pathOriginal.relativize(subDirectory));
 
                         File subPath = new File(finalPath.toUri()).getCanonicalFile();
                         Files.copy(subDirectory, subPath.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        pathTask(subDirectory);
+                        pathTask(subDirectory, prefix, backupDirectoryName);
                     }
 
-                if (file.isFile()) {
-                    if(file.getName().equals("session.lock")) return;
-                    Path filePath = Path.of(file.getCanonicalPath());
-                    Path finalPath = Path.of(backupPath.toString() + "\\" + pathOriginal.relativize(filePath));
+                    if (file.isFile()) {
+                        if (file.getName().equals("session.lock")) return;
+                        Path filePath = Path.of(file.getCanonicalPath());
+                        Path finalPath = Path.of(backupPath.toString() + "\\" + pathOriginal.relativize(filePath));
 
-                    File subFile = new File(finalPath.toUri()).getCanonicalFile();
-                    Files.copy(filePath, subFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                }
+                        File subFile = new File(finalPath.toUri()).getCanonicalFile();
+                        Files.copy(filePath, subFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
 
-                } catch (IOException e ) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             });
