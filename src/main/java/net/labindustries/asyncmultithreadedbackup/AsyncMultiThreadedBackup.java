@@ -3,11 +3,13 @@ package net.labindustries.asyncmultithreadedbackup;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import static net.labindustries.asyncmultithreadedbackup.backup.tasks.subtasks.ReadTasks.readTask;
+import java.io.IOException;
+import java.nio.file.Path;
+
+import static net.labindustries.asyncmultithreadedbackup.backup.tasks.FileTasks.*;
 
 public final class AsyncMultiThreadedBackup extends JavaPlugin {
 
-    public String backupDestination = "Backups//";
     private static AsyncMultiThreadedBackup asyncMultiThreadedBackup;
     public static AsyncMultiThreadedBackup getAsyncMultiThreadedBackup() {
         return asyncMultiThreadedBackup;
@@ -23,10 +25,35 @@ public final class AsyncMultiThreadedBackup extends JavaPlugin {
     public void onEnable() {
         asyncMultiThreadedBackup = this;
         saveDefaultConfig();
-        readTask();
+
+
+        try {
+            Path path = Path.of(AsyncMultiThreadedBackup.getAsyncMultiThreadedBackup().getServer().getWorldContainer().getCanonicalPath());
+            pathTask(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+/*
+        Bukkit.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable() {
+            @Override
+            public void run() {
+                //print();
+            }
+        },100, 1000);
+
+ */
+
+
+
+
+
+
 
 
     }
+
+
 
     @Override
     public void onDisable() {

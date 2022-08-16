@@ -19,6 +19,8 @@ repositories {
 
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT'
+    implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.21'
+
 }
 
 def targetJavaVersion = 17
